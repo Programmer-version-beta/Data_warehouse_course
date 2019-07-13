@@ -1,0 +1,43 @@
+--3
+SELECT {[DIM CUSTOMER].[Country Region Code].[Country Region Code]} ON COLUMNS, 
+{[Measures].[Customer ID Distinct Count]} ON ROWS 
+FROM [Adventure Works2014];
+
+--4
+SELECT {[Order Date].[d Year].&[2012], [Order Date].[d Year].&[2013]} ON COLUMNS,
+{[DIM CUSTOMER].[Country Region Code].[Country Region Code]} ON ROWS
+FROM [Adventure Works2014]
+WHERE [Measures].[Customer ID Distinct Count];
+
+--5
+SELECT {CROSSJOIN({[Order Date].[d Year].&[2012], [Order Date].[d Year].&[2013]}, {[Measures].[Customer ID Distinct Count], [Measures].[Order Qty]})} ON COLUMNS,
+{[DIM CUSTOMER].[Country Region Code].[Country Region Code]} ON ROWS
+FROM [Adventure Works2014];
+
+--6
+SELECT{[DIM CUSTOMER].[Country Region Code].[Country Region Code]}  ON COLUMNS,
+{CROSSJOIN([DIM PRODUCT].[Category Name].Children, [DIM PRODUCT].[Sub Category Name].Children)} ON ROWS 
+FROM [Adventure Works2014]
+WHERE [Measures].[Order Qty];
+
+--7
+SELECT{[DIM CUSTOMER].[Country Region Code].[Country Region Code]}  ON COLUMNS,
+{ORDER(CROSSJOIN([DIM PRODUCT].[Category Name].Children, FILTER([DIM PRODUCT].[Sub Category Name].Children,[Measures].[Product Id Distinct Count]  >= 10)),[Measures].[Order Qty] , DESC)} ON ROWS 
+FROM [Adventure Works2014]
+WHERE [Measures].[Order Qty];
+
+--8
+WITH MEMBER [Measures].[Srednia] AS
+ROUND(AVG(LASTPERIODS(2, [Order Date].[d Month].CURRENTMEMBER), [Measures].[Line Total]), 2)
+SELECT{[Order Date].[d Year].&[2012], [Order Date].[d Year].&[2013]} ON COLUMNS,
+[Order Date].[d Month].CHILDREN ON ROWS
+FROM [Adventure Works2014]
+WHERE [Measures].[Srednia];
+
+--9
+WITH MEMBER [Order Date].[d Month].[d Month]
+AS [Order Date].[d Month].CURRENTMEMBER.NAME
+SELECT
+HEAD( ORDER ( (Descendants([Order Date].[d Month].[d Month], 1), Descendants([Order Date].[d Day], 1)), [Measures].[Order Qty], BDESC), 1) ON COLUMNS,
+[Order Date].[d Year].&[2013] ON ROWS
+FROM [Adventure Works2014];
